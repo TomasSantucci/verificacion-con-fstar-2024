@@ -107,11 +107,12 @@ let ex_falso (#a:Type) (f : falso) : a =
 
 (* Demostrar *)
 let neu1 (#a:Type) : oo a falso -> a =
-  admit()
+  function
+  | Inl x -> x
 
 (* Demostrar *)
 let neu2 (#a:Type) : a -> oo a falso =
-  admit()
+  fun (x:a) -> Inl x
 
 (* Distribución de `yy` sobre `oo`, en ambas direcciones *)
 let distr_yyoo_1 (#a #b #c : Type)
@@ -127,51 +128,71 @@ let distr_yyoo_1 (#a #b #c : Type)
 let distr_yyoo_2 (#a #b #c : Type)
   : oo (yy a b) (yy a c) -> yy a (oo b c)
 =
-  admit()
+  function
+  | Inl (x,y) -> (x,Inl y)
+  | Inr (x,z) -> (x,Inr z)
 
 let distr_ooyy_1 (#a #b #c : Type)
   : oo a (yy b c) -> yy (oo a b) (oo a c)
 =
-  admit()
+  function
+  | Inl x -> (Inl x, Inl x)
+  | Inr (y,z) -> (Inr y, Inr z)
 
 let distr_ooyy_2 (#a #b #c : Type)
   : yy (oo a b) (oo a c) -> oo a (yy b c)
 =
-  admit()
+  function
+  | Inl x, _ -> Inl x
+  | _, Inl x -> Inl x
+  | Inr y, Inr z -> Inr (y,z)
 
 let modus_tollens (#a #b : Type)
   : (a -> b) -> (no b -> no a)
 =
-  admit()
-  (* Vale la recíproca? *)
+  fun a2b nob x -> nob (a2b x)
+  (* La recíproca no vale *)
 
 let modus_tollendo_ponens (#a #b : Type)
   : (oo a b) -> (no a -> b)
 =
-  admit()
-  (* Vale la recíproca? *)
+  function
+  | Inl x -> fun f -> ex_falso (f x)
+  | Inr y -> fun f -> y
+  (* La recíproca no vale *)
 
 let modus_ponendo_tollens (#a #b : Type)
   : no (yy a b) -> (a -> no b)
 =
-  admit()
-  (* Vale la recíproca? *)
+  fun nof x y -> nof (x,y)
+
+let modus_ponendo_tollens' (#a #b : Type)
+  : (a -> no b) -> no (yy a b)
+=
+  fun f (x,y) -> f x y
 
 (* Declare y pruebe, si es posible, las leyes de De Morgan
 para `yy` y `oo`. ¿Son todas intuicionistas? *)
 
 let demorgan1_ida (#a #b : Type) : oo (no a) (no b) -> no (yy a b) =
-  admit()
+  function
+  | Inl noa -> fun (x,y) -> noa x
+  | Inr nob -> fun (x,y) -> nob y
 
 let demorgan1_vuelta (#a #b : Type) : no (yy a b) -> oo (no a) (no b) =
-  admit()
+  admit() (* No vale en lógica intuicionista *)
 
 let demorgan2_ida (#a #b : Type) : yy (no a) (no b) -> no (oo a b) =
-  admit()
+  fun (noa,nob) ->
+  function
+  | Inl x -> noa x
+  | Inr y -> nob y
 
 let demorgan2_vuelta (#a #b : Type) : no (oo a b) -> yy (no a) (no b) =
-  admit()
-
+  fun f ->
+  let noa = fun x -> f (Inl x) in
+  let nob = fun x -> f (Inr x) in
+  (noa,nob)
 
  (* P y no P no pueden valer a la vez. *)
 let no_contradiccion (#a:Type) : no (yy a (no a)) =
@@ -188,19 +209,21 @@ let elim_triple_neg (#a:Type) : no (no (no a)) -> no a =
 
 (* Ejercicio. ¿Se puede en lógica intuicionista? *)
 let ley_impl1 (p q : Type) : (p -> q) -> oo (no p) q =
-  admit()
+  admit() (* No se puede en lógica intuicionista *)
 
 (* Ejercicio. ¿Se puede en lógica intuicionista? *)
 let ley_impl2 (p q : Type) : oo (no p) q -> (p -> q) =
-  admit()
+  function
+  | Inl nop -> fun x -> nop x
+  | Inr y -> fun x -> y
 
 (* Ejercicio. ¿Se puede en lógica intuicionista? *)
 let ley_impl3 (p q : Type) : no (p -> q) -> yy p (no q) =
-  admit()
+  admit() (* No se puede en lógica intuicionista *)
 
 (* Ejercicio. ¿Se puede en lógica intuicionista? *)
 let ley_impl4 (p q : Type) : yy p (no q) -> no (p -> q) =
-  admit()
+  fun (x,noq) f -> noq (f x)
 
 (* Tipos para axiomas clásicos *)
 type eliminacion_doble_neg = (#a:Type) -> no (no a) -> a
@@ -208,11 +231,16 @@ type tercero_excluido = (a:Type) -> oo a (no a)
 
 (* Ejercicio *)
 let lte_implica_edn (lte : tercero_excluido) (#a:Type) : eliminacion_doble_neg =
-  admit()
+  fun #a nna ->
+  match lte a with
+  | Inl x -> x
+  | Inr noa -> nna noa
 
-(* Ejercicio. ¡Difícil! *)
 let edn_implica_lte (edn : eliminacion_doble_neg) (#a:Type) : oo a (no a) =
-  admit()
+  let x1 : no (yy (no a) (no (no a))) = fun (na,nna) -> nna na in
+  let impl1 : no (oo a (no a)) -> yy (no a) (no (no a)) = demorgan2_vuelta #a #(no a) in
+  let x : no (no (oo a (no a))) = modus_tollens impl1 x1 in
+  edn x
 
 (* Ejercicio: ¿la ley de Peirce es intuicionista o clásica?
 Demuestrelá sin axiomas para demostrar que es intuicionista,
@@ -222,7 +250,10 @@ es clásica. *)
 type peirce = (#a:Type) -> (#b:Type) -> ((a -> b) -> a) -> a
 
 let lte_implica_peirce (lte : tercero_excluido) : peirce =
-  admit()
+  fun #a #b ff ->
+  match lte a with
+  | Inl x -> x
+  | Inr noa -> ff noa
 
 let peirce_implica_lte (pp : peirce) : tercero_excluido =
   admit()
