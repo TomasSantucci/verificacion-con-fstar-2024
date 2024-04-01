@@ -7,16 +7,14 @@ let rec add (m n : nat) : Tot nat (decreases n) =
   else add (m+1) (n-1)
   
 (* Demuestre la terminación de esta función *)
-let rec countdown (x:int) : Tot nat =
-  admit(); // borrar
+let rec countdown (x:int) : Tot nat (decreases x+5) =
   if x <= -5 then 0
   else (
     countdown (x-1)
   )
 
 // Elija una métrica para demostrar la terminación
-let rec count_up (x:int{x <= 0}) : Tot unit =
-  admit();
+let rec count_up (x:int{x <= 0}) : Tot unit (decreases -x) =
   if x = 0 then ()
   else count_up (x+1)
 
@@ -50,24 +48,21 @@ and gg (x:nat) : Tot nat (decreases %[x; 1]) =
  
 // -5 -> 4 -> -3 -> 2 -> -1 -> 0
 // Elija una métrica para demostrar la terminación
-let rec flip (x:int) : Tot int =
-  admit(); // borrar
+let rec flip (x:int) : Tot int (decreases abs x) =
   if x = 0 then 0
   else if x > 0 then flip (-x + 1)
   else (* x < 0 *) flip (-x - 1)
 
 // -5 -> 4 -> -4 -> 3 -> -3 -> 2 -> -2 -> 1 -> -1 -> 0
 // Elija una métrica para demostrar la terminación (un poco más dificil)
-let rec flip2 (x:int) : Tot int =
-  admit(); // borrar
+let rec flip2 (x:int) : Tot int (decreases %[abs x; x + abs x]) =
   if x = 0 then 0
   else if x > 0 then flip2 (-x)
   else (* x < 0 *) flip2 (-x - 1)
 
 let rev (#a:Type) (xs : list a) : list a =
-  admit(); // borrar
   (* Agregar una claúsula para demostrar la terminación de esta función *)
-  let rec go (acc xs : list a) : Tot (list a) =
+  let rec go (acc xs : list a) : Tot (list a) (decreases xs) =
     match xs with
     | [] -> acc
     | x::xs -> go (x::acc) xs
@@ -107,8 +102,7 @@ let rec ack (m n : nat) : nat =
   else ack (m-1) (ack m (n-1))
 
 (* Demostar que esta version con los argumentos al revés termina. *)
-let rec ack' (n m : nat) : Tot nat =
-  admit(); // borrar
+let rec ack' (n m : nat) : Tot nat (decreases %[m; n]) =
   if m = 0 then n+1
   else if n = 0 then ack' 1 (m-1)
   else ack' (ack' (n-1) m) (m-1)
