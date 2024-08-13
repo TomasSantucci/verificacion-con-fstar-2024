@@ -40,7 +40,7 @@ let test_catch () : ML int =
   | _ -> 42 (* imposible, pero por la falta de especificación tenemos que escribir este caso *)
 
 (* Versión pura de gcd *)
-let rec gcd (x y : nat) : Tot nat (decreases %[y; x])  =
+let rec gcd (x y : nat) : Tot nat (decreases y)  =
   //admit(); // borrar, demostrar terminación (puede restringir dominio)
   if y = 0 then x
   else if x < y then gcd y x
