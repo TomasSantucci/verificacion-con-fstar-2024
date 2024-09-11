@@ -19,8 +19,9 @@ RUN apt-get update \
       python3-distutils \
       libgmp-dev \
       opam \
+      pkg-config \
     && apt-get clean -y
-# FIXME: libgmp-dev should be installed automatically by opam,
+# FIXME: libgmp-dev and pkg-config should be installed automatically by opam,
 # but it is not working, so just adding it above.
 
 # Create a new user and give them sudo rights
@@ -36,7 +37,7 @@ RUN mkdir -p $HOME/bin
 RUN echo 'export PATH=$HOME/bin:$PATH' | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
 
 # Install OCaml
-ARG OCAML_VERSION=4.12.1
+ARG OCAML_VERSION=4.14.1
 RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing
 RUN opam option depext-run-installs=true
 ENV OPAMYES=1
@@ -53,11 +54,11 @@ RUN eval $(opam env) \
  && source $HOME/.profile \
  && git clone https://github.com/FStarLang/FStar \
  && cd FStar/ \
- && git checkout v2024.01.13 \
+ && git checkout v2024.09.05 \
  && opam install .
 
 # Get F* release and extract into home
-# ARG FSTAR_RELEASE_LINK=https://github.com/FStarLang/FStar/releases/download/v2024.01.13/fstar_2024.01.13_Linux_x86_64.tar.gz
+# ARG FSTAR_RELEASE_LINK=https://github.com/FStarLang/FStar/releases/download/v2024.09.05/fstar_2024.09.05_Linux_x86_64.tar.gz
 # RUN wget -nv $FSTAR_RELEASE_LINK \
 #  && tar xzf fstar_*.tar.gz -C $HOME \
 
