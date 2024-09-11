@@ -150,3 +150,15 @@ let rec to_list_length (t:bst) : Lemma (length (to_list t) == size t) =
     ¿Es cierto que `member x (insert y (insert x t))`? ¿Cómo se puede probar?
     ¿Es cierto que `delete x (insert x t) == t`?
 *)
+
+(*
+  1- member x (insert y (insert x t))
+  Se podría probar con un lema auxiliar: member x t => member x (insert y t)
+  Probaría que la inserción de elementos no borra elementos ya existentes
+
+  2- delete x (insert x t) == t
+  Es válido si (not (member x t)). Porque en ese caso, x queda en una
+  hoja y el delete no modificará la estructura del árbol.
+  En otro caso, como x puede ser un nodo con hijos, al borrarlo cambiará
+  la estructura del árbol y una comparación como == resultará falsa.
+*)

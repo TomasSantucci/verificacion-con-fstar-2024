@@ -71,6 +71,7 @@ let rev (#a:Type) (xs : list a) : list a =
 
 let rec sum (xs:list int) : int =
   (* Por qué se acepta esta función? *)
+  (* Porque tl (x::xs) = xs << x::xs *)
   if Nil? xs
   then 0
   else List.Tot.hd xs + sum (List.Tot.tl xs)
@@ -90,6 +91,8 @@ let rec last #a (xs : list a{Cons? xs}) : a =
 [@@expect_failure]
 let rec sum' (xs:list int) : Tot int =
   (* Por qué *no* se acepta esta función? Termina? *)
+  (* Si bien la función termina, y la longitud de init xs < xs,
+     no hay ningún lema que diga que init xs << xs *)
   if Nil? xs
   then 0
   else last xs + sum' (init xs)
